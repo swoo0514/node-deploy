@@ -34,6 +34,7 @@ nunjucks.configure('views', {
   express: app,
   watch: true,
 });
+
 sequelize
   .sync({ force: false })
   .then(() => {
@@ -44,6 +45,7 @@ sequelize
   });
 
 if (process.env.NODE_ENV === 'production') {
+  app.enable('trust proxy');
   app.use(morgan('combined'));
   app.use(
     helmet({
@@ -56,13 +58,12 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   app.use(morgan('dev'));
 }
-
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/img', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
-const sessionOption = session({
+const sessionOption = {
   resave: false,
   saveUninitialized: false,
   secret: process.env.COOKIE_SECRET,
@@ -71,7 +72,7 @@ const sessionOption = session({
     secure: false,
   },
   store: new RedisStore({ client: redisClient }),
-});
+};
 if (process.env.NODE_ENV === 'production') {
   sessionOption.proxy = true;
   // sessionOption.cookie.secure = true;
@@ -94,6 +95,7 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
+  console.error(err);
   res.locals.message = err.message;
   res.locals.error = process.env.NODE_ENV !== 'production' ? err : {};
   res.status(err.status || 500);
