@@ -18,11 +18,10 @@ try {
 
 const upload = multer({
   storage: multerGoogleStorage.storageEngine({
-    bucket: 'mynodebird',
+    bucket: 'node_bird',
     projectId: 'node-deploy-412306',
     keyFilename: 'node-deploy-412306-130606dbf636.json',
     filename(req, file, cb) {
-      const ext = path.extname(file.originalname);
       cb(null, `original/${Date.now()}_${file.originalname}`);
     },
   }),
